@@ -14,10 +14,30 @@ public class Fractal : MonoBehaviour {
 
 	public float childScale;
 
+	private struct Child {
+		public Vector3 direction;
+		public Quaternion orientation;
+
+		public Child(Vector3 direction, Quaternion orientation) {
+			this.direction = direction;
+			this.orientation = orientation;
+		}
+	};
+
+	private static Child[] children = {
+		new Child (Vector3.up, Quaternion.identity),
+		new Child (Vector3.right, Quaternion.Euler (0f, 0f, -90f)),
+		new Child (Vector3.left, Quaternion.Euler (0f, 0f, 90f)),
+		new Child (Vector3.forward, Quaternion.Euler(90f, 0f, 0f)),
+		new Child (Vector3.back, Quaternion.Euler(-90f, 0f, 0f))
+	};
+
     // Use this for initialization
     void Start () {
         gameObject.AddComponent<MeshFilter>().mesh = mesh;
         gameObject.AddComponent<MeshRenderer>().material = material;
+		GetComponent<MeshRenderer> ().material.color = 
+			Color.Lerp (Color.white, Color.yellow, (float)(depth / maxDepth));
 
         if (depth < maxDepth)
         {
@@ -26,19 +46,14 @@ public class Fractal : MonoBehaviour {
 	}
 
 	private IEnumerator CreateChildren() {
-		yield return new WaitForSeconds (0.5f);
-		new GameObject ("Fractal Child").AddComponent<Fractal> ()
-			.Create (this, Vector3.up);
-		yield return new WaitForSeconds (0.5f);
-		new GameObject ("Fractal Child").AddComponent<Fractal> ()
-			.Create (this, Vector3.right);
-		yield return new WaitForSeconds (0.5f);
-		new GameObject ("Fractal Child").AddComponent<Fractal> ()
-			.Create (this, Vector3.left);
-
+		foreach (var child in children) {
+			yield return new WaitForSeconds (Random.Range(0.1f, 0.5f));
+			new GameObject ("Fractal Child").AddComponent<Fractal> ()
+				.Create (this, child.direction, child.orientation);
+		}
 	}
 
-	void Create(Fractal parent, Vector3 direction)
+	void Create(Fractal parent, Vector3 direction, Quaternion rotation)
     {
         material = parent.material;
         mesh = parent.mesh;
@@ -51,10 +66,7 @@ public class Fractal : MonoBehaviour {
 		childScale = parent.childScale;
 		transform.localScale = Vector3.one * childScale;
 		transform.localPosition = direction * (0.5f + 0.5f * childScale); 
+
+		transform.localRotation = rotation;
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }
