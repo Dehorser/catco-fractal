@@ -32,6 +32,9 @@ public class Fractal : MonoBehaviour {
 		yield return new WaitForSeconds (0.5f);
 		new GameObject ("Fractal Child").AddComponent<Fractal> ()
 			.Create (this, Vector3.right);
+		yield return new WaitForSeconds (0.5f);
+		new GameObject ("Fractal Child").AddComponent<Fractal> ()
+			.Create (this, Vector3.left);
 
 	}
 
