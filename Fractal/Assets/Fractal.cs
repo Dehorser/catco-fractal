@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Fractal : MonoBehaviour {
-
-
-
+	
     public Material material;
     public Mesh mesh;
 
@@ -24,6 +22,8 @@ public class Fractal : MonoBehaviour {
 		}
 	};
 
+	public Material[] materials;
+
 	private static Child[] children = {
 		new Child (Vector3.up, Quaternion.identity),
 		new Child (Vector3.right, Quaternion.Euler (0f, 0f, -90f)),
@@ -34,12 +34,12 @@ public class Fractal : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+		if (depth == 0) {
+			InitializeMaterials();
+		}
         gameObject.AddComponent<MeshFilter>().mesh = mesh;
-        gameObject.AddComponent<MeshRenderer>().material = material;
-		GetComponent<MeshRenderer> ().material.color = 
-			Color.Lerp (Color.white, Color.yellow, (float)(depth / maxDepth));
-
-        if (depth < maxDepth)
+        gameObject.AddComponent<MeshRenderer>().material = materials[depth];
+		if (depth < maxDepth)
         {
 			StartCoroutine (CreateChildren ());
         }
@@ -55,18 +55,33 @@ public class Fractal : MonoBehaviour {
 
 	void Create(Fractal parent, Vector3 direction, Quaternion rotation)
     {
-        material = parent.material;
-        mesh = parent.mesh;
+		this.mesh = parent.mesh;
 
-        maxDepth = parent.maxDepth;
-        depth = parent.depth + 1;
+		this.maxDepth = parent.maxDepth;
+		this.depth = parent.depth + 1;
 
-        transform.parent = parent.transform;
+		this.transform.parent = parent.transform;
 
-		childScale = parent.childScale;
-		transform.localScale = Vector3.one * childScale;
-		transform.localPosition = direction * (0.5f + 0.5f * childScale); 
+		this.childScale = parent.childScale;
+		this.transform.localScale = Vector3.one * childScale;
+		this.transform.localPosition = direction * (0.5f + 0.5f * childScale); 
 
-		transform.localRotation = rotation;
+		this.transform.localRotation = rotation;
+
+		this.materials = parent.materials;
     }
+
+	private void InitializeMaterials () {
+		materials = new Material[maxDepth + 1];
+		for (int i = 0; i <= maxDepth; i++) {
+			float t = (float) i / maxDepth;
+			materials [i] = new Material (material);
+			if (i == maxDepth) {
+				materials [i].color = Color.magenta;
+			} else {
+				materials [i].color =
+					Color.Lerp (Color.white, Color.yellow, t);
+			}
+		}
+	}
 }
